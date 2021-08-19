@@ -1,5 +1,5 @@
 {
-  "name": "@gemini-testing/npm-merge-driver",
+  "name": "npm-merge-driver",
   "version": "2.3.7",
   "description": "git merge driver for automatically merging lockfiles",
   "bin": "index.js",
@@ -18,7 +18,7 @@
     "release": "standard-version -s",
     "test": "tap -J --coverage test/*.js"
   },
-  "repository": "https://github.com/npm/npm-merge-driver",
+  "repository": "https://github.com/sambacha/npm-merge-driver",
   "keywords": [
     "npm",
     "lockfiles",
@@ -42,7 +42,7 @@
   },
   "license": "ISC",
   "dependencies": {
-    "mkdirp": "^0.5.1",
+    "mkdirp": "^1.0.4",
     "yargs": "^10.0.3"
   },
   "devDependencies": {
