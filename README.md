@@ -1,4 +1,4 @@
-# npm-merge-driver(1) -- git merge driver for automatic merging of lockfiles
+## npm-merge-driver(1) -- git merge driver for automatic merging of lockfiles
 
 ### Automatic Setup (recommended):
 
