@@ -6,6 +6,10 @@ const fs = require('fs')
 const mkdirp = require('mkdirp')
 const path = require('path')
 const yargs = require('yargs')
+const libxml = require('libxmljs')
+const differenceBy = require('lodash/differenceBy')
+const intersectionBy = require('lodash/intersectionBy')
+const mapKeys = require('lodash/mapKeys')
 
 if (require.main === module) {
   parseArgs()
@@ -78,7 +82,7 @@ function parseArgs () {
       },
       legacy: {
         type: 'boolean',
-        default: true,
+        default: false,
         description:
             'If <command> errors, it will be re-run after checking out the --theirs version of the file, with no granular merging.'
       }
@@ -103,9 +107,7 @@ function install (argv) {
     `git config ${opts} merge."${argv.driverName}".name "automatically merge npm lockfiles"`
   )
   cp.execSync(
-    `git config ${opts} merge."${argv.driverName}".driver "${argv.driver}${!argv.legacy
-      ? ' --no-legacy'
-      : ''}"`
+    `git config ${opts} merge."${argv.driverName}".driver "${argv.driver}"`
   )
   mkdirp.sync(path.dirname(attrFile))
   let attrContents = ''
@@ -207,6 +209,83 @@ function merge (argv) {
   }
 
   fs.writeFileSync(argv['%P'], ret.stdout)
+
+  try {
+    // see if the resulting file  has markers
+    const result = ret.stdout.toString('utf8')
+    // also check if it's correct XML (will throw if not)
+    libxml.parseXmlString(result)
+  } catch (e) {
+    // let's try and do the merge manually then
+    const left = libxml.parseXmlString(fs.readFileSync(argv['%A'], 'utf8'))
+    const right = libxml.parseXmlString(fs.readFileSync(argv['%B'], 'utf8'))
+
+    // so first of all we want to add any new nodes to A from B,
+    const leftNames = left
+      .root()
+      .childNodes()
+      .filter(node => node.type() === 'element' && node.name() === 'data')
+      .map(node => ({
+        name: node.attr('name').value(),
+        path: node.path(),
+        value: node.text()
+      }))
+    const rightNames = right
+      .root()
+      .childNodes()
+      .filter(node => node.type() === 'element' && node.name() === 'data')
+      .map(node => ({
+        name: node.attr('name').value(),
+        path: node.path(),
+        value: node.text()
+      }))
+
+    // any value changes ?
+    const rightNamesMap = mapKeys(rightNames, 'name')
+    const commonNames = intersectionBy(leftNames, rightNames, el => el.name)
+    const differentValues = commonNames.filter(
+      node => node.value !== rightNamesMap[node.name].value
+    )
+
+    if (differentValues.length !== 0) {
+      console.error(
+        'there are conflicts that need resolving manually on:',
+        argv['%P']
+      )
+      const ret = cp.spawnSync(
+        'git',
+        [
+          'merge-file',
+          '-p',
+          '-L HEAD',
+          '-L INCOMING',
+          argv['%A'],
+          argv['%O'],
+          argv['%B']
+        ],
+        {
+          stdio: [0, 'pipe', 2]
+        }
+      )
+      fs.writeFileSync(argv['%A'], ret.stdout)
+      process.exit(-1)
+    }
+
+    const newNodeNames = differenceBy(rightNames, leftNames, el => el.name)
+    // add in left what's not in right
+    newNodeNames.forEach((node, idx) => {
+      left.root().addChild(right.get(node.path))
+    })
+
+    // merge complete :)
+    ret.stdout = left.toString()
+  }
+  fs.writeFileSync(argv['%A'], ret.stdout)
+  console.error('npm-merge-driver:', argv['%P'], 'successfully merged.')
+}
+
+/**
+
   try {
     cp.execSync(argv.command, {
       stdio: 'inherit',
@@ -229,3 +308,4 @@ function merge (argv) {
   fs.writeFileSync(argv['%A'], fs.readFileSync(argv['%P']))
   console.error('npm-merge-driver:', argv['%P'], 'successfully merged.')
 }
+ */

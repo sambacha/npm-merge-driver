@@ -42,6 +42,8 @@
   },
   "license": "ISC",
   "dependencies": {
+    "libxmljs": "^0.19.7",
+    "lodash": "^4.17.21",
     "mkdirp": "^1.0.4",
     "yargs": "^10.0.3"
   },
