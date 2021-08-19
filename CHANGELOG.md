@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.3.7"></a>
+## [2.3.7](https://github.com/npm/npm-merge-driver/compare/v2.3.6...v2.3.7) (2020-10-30)
+
+
+### Bug Fixes
+
+* **merge:** handle error from child process with "git merge-file" ([99d2a1d](https://github.com/npm/npm-merge-driver/commit/99d2a1d))
+* **merge:** set "maxBuffer=Infinity" for "git merge-file" to prevent enobufs ([feab9d1](https://github.com/npm/npm-merge-driver/commit/feab9d1))
+
+
+
 <a name="2.3.6"></a>
 ## [2.3.6](https://github.com/npm/npm-merge-driver/compare/v2.3.5...v2.3.6) (2020-03-26)
 
